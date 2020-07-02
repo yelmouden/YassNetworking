@@ -1,3 +1,3 @@
 # networking
 
-A network layer with Rx, combine and TCA Effect extension
+A network layer with Rx, Combine and TCA Effect extension
