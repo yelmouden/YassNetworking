@@ -58,7 +58,7 @@ public extension Observable {
 }
 
 
-extension Observable where Element: ResultType {
+public extension Observable where Element: ResultType {
     var value: Observable<Element.Success> {
         map { guard let element = $0.value  else { return nil }
             return element
