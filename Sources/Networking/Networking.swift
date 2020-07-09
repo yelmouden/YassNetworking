@@ -19,6 +19,7 @@ public class Networking : NetworkProtocol {
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>,
         decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
+        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
         completion: @escaping (Result<T, NetworkError<APIError?>>) -> Void)
         -> Request?
     {
@@ -42,7 +43,7 @@ public class Networking : NetworkProtocol {
             case let (.some(data), _, .none):
                 let jsonDecoder = JSONDecoder()
                 jsonDecoder.keyDecodingStrategy = decodingStrategy
-
+                jsonDecoder.dateDecodingStrategy = dateDecodingStrategy
                 do {
                     let object = try jsonDecoder.decode(T.self, from: data)
                     completion(.success(object))

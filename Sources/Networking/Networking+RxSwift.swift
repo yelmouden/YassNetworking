@@ -9,20 +9,27 @@
 import Foundation
 import RxSwift
 
-extension Networking {
-    public func request<T: Decodable,APIError>(
+public extension Networking {
+    func request<T: Decodable,APIError>(
         target: TargetType,
-        errorAPIHandler: @escaping HandlerAPIError<APIError?>) -> Observable<T>
+        decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
+        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
+        errorAPIHandler: @escaping HandlerAPIError<APIError?>
+    ) -> Observable<T>
     {
         Observable<T>.create { (observer) -> Disposable in
-            let request = self.request(target: target, errorAPIHandler: errorAPIHandler) { (result: Result<T,NetworkError>) in
+            let request = self.request(
+                target: target,
+                errorAPIHandler: errorAPIHandler,
+                decodingStrategy: decodingStrategy,
+                dateDecodingStrategy: dateDecodingStrategy
+            ) { (result: Result<T,NetworkError>) in
                 switch result {
                 case let .success(element):
                     observer.onNext(element)
                     observer.onCompleted()
                 case let .failure(error):
                     observer.onError(error)
-
                 }
             }
 
@@ -34,7 +41,7 @@ extension Networking {
 }
 
 
-extension Observable {
+public extension Observable {
     func mapToResult<E>() -> Observable<Result<Element, NetworkError<E?>>> {
         self.materialize().flatMap { (event) -> Observable<Result<Element, NetworkError<E?>>> in
             switch event {
@@ -56,7 +63,7 @@ extension Observable where Element: ResultType {
         map { guard let element = $0.value  else { return nil }
             return element
         }.filter{ $0 != nil }
-        .map{ $0! }
+            .map{ $0! }
     }
 
     var error: Observable<Element.Failure> {
@@ -64,6 +71,6 @@ extension Observable where Element: ResultType {
             guard let element = $0.error  else { return nil }
             return element
         }.filter{ $0 != nil }
-        .map{ $0! }
+            .map{ $0! }
     }
 }

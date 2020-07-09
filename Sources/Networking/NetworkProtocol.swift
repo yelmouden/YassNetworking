@@ -64,6 +64,7 @@ public protocol NetworkProtocol {
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>,
         decodingStrategy: JSONDecoder.KeyDecodingStrategy,
+        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy,
         completion: @escaping (Result<T, NetworkError<APIError?>>) -> Void
     ) -> Request?
 }

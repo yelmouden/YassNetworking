@@ -9,10 +9,11 @@
 import Foundation
 import Combine
 
-extension Networking {
-    public func request<T: Decodable,APIError>(
+public extension Networking {
+    func request<T: Decodable,APIError>(
         target: TargetType,
         decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
+        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>
     )
     -> AnyPublisher<Result<T, NetworkError<APIError?>>, Never>
@@ -24,7 +25,8 @@ extension Networking {
                 request = self.request(
                 target: target,
                 errorAPIHandler: errorAPIHandler,
-                decodingStrategy: decodingStrategy
+                decodingStrategy: decodingStrategy,
+                dateDecodingStrategy: dateDecodingStrategy
                 ) { (result: Result<T,NetworkError>) in
                     promise(.success(result))
                 }

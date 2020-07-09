@@ -9,10 +9,11 @@ import Foundation
 import Combine
 import ComposableArchitecture
 
-extension Networking {
-    public func request<T: Decodable,APIError>(
+public extension Networking {
+    func request<T: Decodable,APIError>(
            target: TargetType,
            decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
+           dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
            errorAPIHandler: @escaping HandlerAPIError<APIError?>
        )
         -> Effect<Result<T, NetworkError<APIError?>>, Never>
@@ -20,6 +21,7 @@ extension Networking {
         let publisher: AnyPublisher<Result<T, NetworkError<APIError?>>, Never> = self.request(
             target: target,
             decodingStrategy: decodingStrategy,
+            dateDecodingStrategy: dateDecodingStrategy,
             errorAPIHandler: errorAPIHandler
         )
 
