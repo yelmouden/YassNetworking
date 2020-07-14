@@ -10,12 +10,12 @@ import Foundation
 
 public typealias HandlerAPIError<E> = (Error, Data) -> E?
 
-public enum HTTPMethod: String {
+public enum HTTPMethod: String, Equatable {
     case get
     case post
 }
 
-public enum Encoding {
+public enum Encoding: Equatable {
     case JSON
     case URL
 }
