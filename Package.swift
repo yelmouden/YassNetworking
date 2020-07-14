@@ -28,10 +28,18 @@ let package = Package(
             name: "Networking",
             dependencies: ["RxSwift",
                            .product(
+                           name: "RxCocoa",
+                           package: "RxSwift"),
+                           .product(
                             name: "ComposableArchitecture",
                             package: "swift-composable-architecture")]),
         .testTarget(
             name: "NetworkingTests",
-            dependencies: ["Networking"]),
+            dependencies: ["Networking",
+                .product(
+                name: "RxTest",
+                package: "RxSwift")
+            ]
+        ),
     ]
 )
