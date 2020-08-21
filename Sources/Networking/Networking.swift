@@ -15,11 +15,23 @@ public class Networking : NetworkProtocol {
         self.manager = manager
     }
 
+    public func loadFromCache<T>(target: TargetType) -> T? where T : Decodable {
+        guard target.shouldCache, let path = target.pathForCache, let data = loadInCache(path: path) else { return nil }
+        do {
+            let object: T = try decode(
+                data: data,
+                decodingStrategy: target.decodingStrategy,
+                dateDecodingStrategy: target.dateDecodingStrategy
+            )
+            return object
+        }catch {
+            return nil
+        }
+    }
+
     public func request<T: Decodable, APIError>(
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>,
-        decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
-        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
         completion: @escaping (Result<T, NetworkError<APIError?>>) -> Void)
         -> Request?
     {
@@ -41,9 +53,13 @@ public class Networking : NetworkProtocol {
                 completion(.failure(.apiError(apiError)))
                 return
             case let (.some(data), _, .none):
+                if target.shouldCache, let path = target.pathForCache {
+                    self.saveInCache(data: data, path: path)
+                }
+
                 let jsonDecoder = JSONDecoder()
-                jsonDecoder.keyDecodingStrategy = decodingStrategy
-                jsonDecoder.dateDecodingStrategy = dateDecodingStrategy
+                jsonDecoder.keyDecodingStrategy = target.decodingStrategy
+                jsonDecoder.dateDecodingStrategy = target.dateDecodingStrategy
                 do {
                     let object = try jsonDecoder.decode(T.self, from: data)
                     completion(.success(object))
@@ -58,14 +74,47 @@ public class Networking : NetworkProtocol {
     }
 }
 
-extension Networking {
-    private func prepareRequest(target: TargetType) -> URLRequest? {
+private extension Networking {
+    func saveInCache(data: Data, path: String) {
+        let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fullPath = baseURL.appendingPathComponent(path)
+        do {
+            try data.write(to: fullPath)
+        } catch {
+            print("error during save")
+        }
+    }
+
+   func loadInCache(path: String) -> Data? {
+        let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fullPath = baseURL.appendingPathComponent(path)
+
+       return try? Data(contentsOf: fullPath)
+    }
+}
+
+private extension Networking {
+    func decode<T: Decodable>(
+        data: Data,
+        decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
+        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate) throws -> T
+    {
+        let jsonDecoder = JSONDecoder()
+        jsonDecoder.keyDecodingStrategy = decodingStrategy
+        jsonDecoder.dateDecodingStrategy = dateDecodingStrategy
+
+        return try jsonDecoder.decode(T.self, from: data)
+    }
+}
+
+private extension Networking {
+    func prepareRequest(target: TargetType) -> URLRequest? {
         guard let url = URL(string: target.path) else { return nil }
 
         var request = URLRequest(url: url)
         request.httpMethod = target.method.rawValue.uppercased()
 
-        if target.typeEncoding == .URL {
+        if target.typeEncoding == .url {
             guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: false) else {
                 return nil
             }

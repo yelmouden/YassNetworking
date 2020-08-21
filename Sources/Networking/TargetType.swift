@@ -13,4 +13,14 @@ public protocol TargetType {
     var method: HTTPMethod { get }
     var typeEncoding: Encoding { get }
     var parameters: [String: Any] { get }
+    var shouldCache: Bool { get }
+    var pathForCache: String? { get }
+    var decodingStrategy: JSONDecoder.KeyDecodingStrategy { get }
+    var dateDecodingStrategy: JSONDecoder.DateDecodingStrategy { get }
+}
+
+
+public extension TargetType {
+    var decodingStrategy: JSONDecoder.KeyDecodingStrategy { .useDefaultKeys }
+    var dateDecodingStrategy: JSONDecoder.DateDecodingStrategy { .deferredToDate }
 }

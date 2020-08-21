@@ -16,8 +16,8 @@ public enum HTTPMethod: String, Equatable {
 }
 
 public enum Encoding: Equatable {
-    case JSON
-    case URL
+    case json
+    case url
 }
 
 public enum NetworkError<T>: Error {
@@ -26,6 +26,7 @@ public enum NetworkError<T>: Error {
     case codeError(Int)
     case parsingError(DecodingError)
     case unknown
+    case noCache
 }
 
 public protocol Request {
@@ -59,13 +60,12 @@ public protocol Manager {
 
 public protocol NetworkProtocol {
     var manager: Manager { get }
-
     func request<T: Decodable, APIError>(
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>,
-        decodingStrategy: JSONDecoder.KeyDecodingStrategy,
-        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy,
         completion: @escaping (Result<T, NetworkError<APIError?>>) -> Void
     ) -> Request?
+
+    func loadFromCache<T: Decodable>(target: TargetType) -> T?
 }
 

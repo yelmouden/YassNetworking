@@ -12,17 +12,13 @@ import RxSwift
 public extension Networking {
     func request<T: Decodable,APIError>(
         target: TargetType,
-        decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
-        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>
     ) -> Observable<T>
     {
         Observable<T>.create { (observer) -> Disposable in
             let request = self.request(
                 target: target,
-                errorAPIHandler: errorAPIHandler,
-                decodingStrategy: decodingStrategy,
-                dateDecodingStrategy: dateDecodingStrategy
+                errorAPIHandler: errorAPIHandler
             ) { (result: Result<T,NetworkError>) in
                 switch result {
                 case let .success(element):

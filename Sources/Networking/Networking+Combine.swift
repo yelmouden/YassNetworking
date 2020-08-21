@@ -12,8 +12,6 @@ import Combine
 public extension Networking {
     func request<T: Decodable,APIError>(
         target: TargetType,
-        decodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys,
-        dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>
     )
     -> AnyPublisher<Result<T, NetworkError<APIError?>>, Never>
@@ -24,9 +22,7 @@ public extension Networking {
             Future<Result<T, NetworkError<APIError?>>, Never> { promise in
                 request = self.request(
                 target: target,
-                errorAPIHandler: errorAPIHandler,
-                decodingStrategy: decodingStrategy,
-                dateDecodingStrategy: dateDecodingStrategy
+                errorAPIHandler: errorAPIHandler
                 ) { (result: Result<T,NetworkError>) in
                     promise(.success(result))
                 }
