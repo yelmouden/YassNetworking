@@ -3,7 +3,7 @@ Pod::Spec.new do |s|
   s.version = "1.0.0"
   s.license = "MIT"
   s.summary = "Networking layer"
-  s.homepage = "https://github.com/yelmouden/networking"
+  s.homepage = "https://github.com/yelmouden/YassNetworking"
   s.source = { :git => 'https://github.com/yelmouden/YassNetworking.git', :tag => "YassNetworking/1.0.0" }
   s.authors = { "yassin el mouden" => "yassin.elmouden@gmail.com" }
   s.ios.deployment_target = "13.5"
