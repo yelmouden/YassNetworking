@@ -10,7 +10,7 @@ import Foundation
 
 extension URLSessionTask: Request {}
 
-extension URLSession: Manager {
+extension URLSession: RequestManager {
     public func request(
         request: URLRequest,
         completion: @escaping (Data?, URLResponse?, Error?) -> Void

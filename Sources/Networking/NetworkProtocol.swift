@@ -50,7 +50,7 @@ extension Result: ResultType {
     }
 }
 
-public protocol Manager {
+public protocol RequestManager {
     func request(
         request: URLRequest,
         completion: @escaping (Data?, URLResponse?, Error?) -> Void
@@ -59,7 +59,9 @@ public protocol Manager {
 
 
 public protocol NetworkProtocol {
-    var manager: Manager { get }
+    var requestManager: RequestManager { get }
+    var cacheManager: CacheManagerProtocol { get }
+
     func request<T: Decodable, APIError>(
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>,

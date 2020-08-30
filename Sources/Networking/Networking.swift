@@ -9,24 +9,16 @@
 import Foundation
 
 public class Networking : NetworkProtocol {
-    public var manager: Manager
+    public let requestManager: RequestManager
+    public let cacheManager: CacheManagerProtocol
 
-    public init(manager: Manager = URLSession.shared) {
-        self.manager = manager
+    public init(requestManager: RequestManager = URLSession.shared, cacheManager: CacheManagerProtocol = CacheManager()) {
+        self.requestManager = requestManager
+        self.cacheManager = cacheManager
     }
 
     public func loadFromCache<T>(target: TargetType) -> T? where T : Decodable {
-        guard target.shouldCache, let path = target.pathForCache, let data = loadInCache(path: path) else { return nil }
-        do {
-            let object: T = try decode(
-                data: data,
-                decodingStrategy: target.decodingStrategy,
-                dateDecodingStrategy: target.dateDecodingStrategy
-            )
-            return object
-        }catch {
-            return nil
-        }
+        return cacheManager.loadFromCache(target: target)
     }
 
     public func request<T: Decodable, APIError>(
@@ -40,7 +32,7 @@ public class Networking : NetworkProtocol {
             return nil
         }
 
-        return manager.request(request: request) { data, response, error in
+        return requestManager.request(request: request) { data, response, error in
             switch (data, response, error)  {
             case let (.none, _, .some(error)):
                 completion(.failure(.codeError((error as NSError).code)))
@@ -53,9 +45,7 @@ public class Networking : NetworkProtocol {
                 completion(.failure(.apiError(apiError)))
                 return
             case let (.some(data), _, .none):
-                if target.shouldCache, let path = target.pathForCache {
-                    self.saveInCache(data: data, path: path)
-                }
+                self.cacheManager.saveInCache(data: data, target: target)
 
                 let jsonDecoder = JSONDecoder()
                 jsonDecoder.keyDecodingStrategy = target.decodingStrategy
@@ -71,25 +61,6 @@ public class Networking : NetworkProtocol {
             default: break
             }
         }
-    }
-}
-
-private extension Networking {
-    func saveInCache(data: Data, path: String) {
-        let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fullPath = baseURL.appendingPathComponent(path)
-        do {
-            try data.write(to: fullPath)
-        } catch {
-            print("error during save")
-        }
-    }
-
-   func loadInCache(path: String) -> Data? {
-        let baseURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fullPath = baseURL.appendingPathComponent(path)
-
-       return try? Data(contentsOf: fullPath)
     }
 }
 
