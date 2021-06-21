@@ -11,10 +11,16 @@ import Foundation
 public class Networking : NetworkProtocol {
     public let requestManager: RequestManager
     public let cacheManager: CacheManagerProtocol
+    public let defaultHeaders: [String : String]
 
-    public init(requestManager: RequestManager = URLSession.shared, cacheManager: CacheManagerProtocol = CacheManager()) {
+    public init(
+        requestManager: RequestManager = URLSession.shared,
+        cacheManager: CacheManagerProtocol = CacheManager(),
+        defaultHeaders: [String: String] = [:]
+    ) {
         self.requestManager = requestManager
         self.cacheManager = cacheManager
+        self.defaultHeaders = defaultHeaders
     }
 
     public func loadFromCache<T>(target: TargetType) -> T? where T : Decodable {
@@ -27,11 +33,13 @@ public class Networking : NetworkProtocol {
         completion: @escaping (Result<T, NetworkError<APIError?>>) -> Void)
         -> Request?
     {
-        guard let request = prepareRequest(target: target) else {
+        guard let request = prepareRequest(target: target, headers: defaultHeaders) else {
             completion(.failure(NetworkError.invalidRequest(target.path)))
             return nil
         }
-
+        
+        
+        
         return requestManager.request(request: request) { data, response, error in
             switch (data, response, error)  {
             case let (.none, _, .some(error)):
@@ -56,7 +64,7 @@ public class Networking : NetworkProtocol {
                 }catch {
                     completion(.failure(.parsingError(error as! DecodingError)))
                 }
-
+                
                 return
             default: break
             }
@@ -79,12 +87,16 @@ private extension Networking {
 }
 
 private extension Networking {
-    func prepareRequest(target: TargetType) -> URLRequest? {
+    func prepareRequest(target: TargetType, headers: [String: String]) -> URLRequest? {
         guard let url = URL(string: target.path) else { return nil }
 
         var request = URLRequest(url: url)
         request.httpMethod = target.method.rawValue.uppercased()
 
+        headers.forEach { (header) in
+            request.addValue(header.value, forHTTPHeaderField: header.key)
+        }
+        
         if target.typeEncoding == .url {
             guard let components = NSURLComponents(url: url, resolvingAgainstBaseURL: false) else {
                 return nil

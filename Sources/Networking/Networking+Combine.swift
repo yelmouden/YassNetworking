@@ -9,7 +9,7 @@
 import Foundation
 import Combine
 
-public extension Networking {
+public extension NetworkProtocol {
     func request<T: Decodable,APIError>(
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>

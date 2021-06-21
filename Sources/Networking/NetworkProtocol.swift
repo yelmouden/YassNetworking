@@ -61,7 +61,8 @@ public protocol RequestManager {
 public protocol NetworkProtocol {
     var requestManager: RequestManager { get }
     var cacheManager: CacheManagerProtocol { get }
-
+    var defaultHeaders: [String: String] { get }
+    
     func request<T: Decodable, APIError>(
         target: TargetType,
         errorAPIHandler: @escaping HandlerAPIError<APIError?>,
